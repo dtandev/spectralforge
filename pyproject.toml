@@ -1,0 +1,118 @@
+[tool.black]
+line-length = 160
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 120
+default_section = "THIRDPARTY"
+known_third_party = []
+known_first_party = ["h4e_ml"]
+
+[tool.mypy]
+ignore_missing_imports = true
+exclude = [
+    'venv',
+    '\.venv',
+    '\.git',
+    '__pycache__',
+    'data',
+    'notebooks',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "rsom_ml_pipelines.*",
+    "mlflow.*",
+    "sqlalchemy.*",
+    "geoalchemy2.*",
+    "tqdm.*",
+    "geopandas.*",
+    "shapely.*",
+    "pandas.*",
+    "rasterio.*",
+    "pydantic.*",
+    "sentinelhub.*",
+    "pystac_client.*",
+    "sentinelsat.*",
+    "azure.*",
+    "planetary_computer.*",
+    "pystac.*",
+    "stackstac.*",
+    "xarray.*",
+    "rioxarray.*",
+    "xrspatial.*",
+    "numpy.*",
+    "distributed.*",
+    "dask_gateway.*",
+    "kornia.*",
+    "torch.*",
+    "azureml.core.*",
+    "flash.*",
+    "flash.image.*",
+    "pytorch_lightning.*",
+    "torch.nn.*",
+    "torch.utils.data.*",
+    "pytorch_lightning.*",
+    "retry.*",
+    "ttach.*",
+    "matplotlib.*",
+    "torchmetrics.*",
+    "torchvision.*",
+    "dotenv.*",
+    "geojson.*",
+    "area.*",
+    "cv2.*",
+    "sklearn.*",
+    "joblib.*",
+    "click.*",
+    "morecantile.*",
+    "rio_cogeo.*",
+    "yaml.*",
+]
+ignore_missing_imports = true
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+addopts = "--ignore data --ignore notebooks --ignore build_tools --ignore examples --ignore docs"
+asyncio_mode = "auto"
+markers = [
+    "unit: mark a test as a unit test.",
+    "integration: mark test as an integration test.",
+    "e2e: mark test as an end to end test.",
+]
+filterwarnings = [
+    "ignore::UserWarning",
+    "ignore:numpy.dtype size changed",
+    "ignore:numpy.ufunc size changed",
+    "ignore:.*Passing field metadata as keyword arguments is deprecated*:DeprecationWarning:",
+    "ignore:.*The 'default' argument to fields is deprecated. Use 'dump_default' instead*:DeprecationWarning:",
+    "ignore:.*The 'missing' argument to fields is deprecated. Use 'load_default' instead*:DeprecationWarning:",
+    "ignore:.*skip_equivalent is deprecated.*:DeprecationWarning:",
+    "ignore:.*numpy.ndarray size changed, may indicate binary incompatibility.*:RuntimeWarning:",
+    "ignore:.*pandas.Int64Index is deprecated and will be removed from pandas in a future version.*:FutureWarning:",
+    "ignore:.*distutils Version classes are deprecated. Use packaging.version instead.*:DeprecationWarning:",
+    "ignore:.*FileType Enum is Deprecated in > 1.0.39. Use strings instead.*:DeprecationWarning:",
+    "ignore:.*Jupyter is migrating its paths to use standard platformdirs*:DeprecationWarning:",
+]
+
+
+[tool.check-manifest]
+ignore = [
+    ".binder/**",
+    ".all-contributorsrc",
+    ".coveragerc",
+    "examples/**",
+    "build_tools/**",
+    "__check_build/**",
+    "docs/**",
+    "Makefile",
+    "CODEOWNERS",
+    "CONTRIBUTING.md",
+    "*.yaml",
+    "*.yml"
+]
