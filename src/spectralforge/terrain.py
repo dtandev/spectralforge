@@ -121,6 +121,9 @@ class TerrainGeometry:
 
 GeometrySampler = Callable[[np.random.Generator, int], TerrainGeometry]
 
+SunPositions = tuple[np.ndarray, np.ndarray]
+"""Paired (solar_zenith_deg, solar_azimuth_deg) candidates, e.g. from `spectralforge.solar`."""
+
 
 def horizon_elevation(
     dem: np.ndarray, pixel_size: float, azimuth_deg: float, max_distance: float
@@ -129,23 +132,30 @@ def horizon_elevation(
 
     Marches outward pixel by pixel (nearest neighbour) up to `max_distance` (same unit as
     `pixel_size`, square pixels). Terrain beyond the raster edge is treated as absent, so
-    pixels near the edge may have their horizon underestimated. Returns −90° where nothing
-    is found in range.
+    pixels near the edge may have their horizon underestimated. No-data (NaN) cells never
+    block the view. Returns −90° where nothing is found in range.
     """
     z = np.asarray(dem, dtype=float)
-    rows, cols = np.indices(z.shape)
+    n_rows, n_cols = z.shape
     d_row, d_col = -np.cos(np.radians(azimuth_deg)), np.sin(np.radians(azimuth_deg))
-    best = np.full(z.shape, -90.0)
+    # The offset of step k is the same for every pixel, so each step is one shifted slice of
+    # the DEM (no per-pixel indexing). Track the steepest tangent; arctan once at the end.
+    best_tan = np.full(z.shape, -np.inf)
+    seen: set[tuple[int, int]] = set()
     for step in range(1, int(np.ceil(max_distance / pixel_size)) + 1):
-        r = np.rint(rows + step * d_row).astype(int)
-        c = np.rint(cols + step * d_col).astype(int)
-        inside = (r >= 0) & (r < z.shape[0]) & (c >= 0) & (c < z.shape[1])
-        if not inside.any():
+        dr, dc = int(np.rint(step * d_row)), int(np.rint(step * d_col))
+        if abs(dr) >= n_rows or abs(dc) >= n_cols:
             break
-        rise = np.where(
-            inside, z[r.clip(0, z.shape[0] - 1), c.clip(0, z.shape[1] - 1)] - z, -np.inf
-        )
-        best = np.maximum(best, np.degrees(np.arctan(rise / (step * pixel_size))))
+        if (dr, dc) in seen:
+            continue
+        seen.add((dr, dc))
+        r0, r1 = max(0, -dr), n_rows - max(0, dr)
+        c0, c1 = max(0, -dc), n_cols - max(0, dc)
+        rise = z[r0 + dr : r1 + dr, c0 + dc : c1 + dc] - z[r0:r1, c0:c1]
+        window = best_tan[r0:r1, c0:c1]
+        np.fmax(window, rise / (np.hypot(dr, dc) * pixel_size), out=window)
+    best = np.degrees(np.arctan(best_tan))
+    best[~np.isfinite(best_tan)] = -90.0
     return best
 
 
@@ -246,6 +256,28 @@ def draw_uniform(rng: np.random.Generator, spec: AngleSpec, n: int) -> np.ndarra
     return rng.uniform(low, high, n)
 
 
+def draw_sun(
+    rng: np.random.Generator,
+    n: int,
+    solar_zenith_deg: AngleSpec | None,
+    solar_azimuth_deg: AngleSpec | None,
+    sun_positions: SunPositions | None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Solar angles for `n` samples: drawn from real (zenith, azimuth) pairs when given,
+    otherwise each angle independently (fixed or uniform in a range)."""
+    if sun_positions is not None:
+        zenith, azimuth = (np.asarray(a, dtype=float).ravel() for a in sun_positions)
+        if zenith.size == 0 or zenith.shape != azimuth.shape:
+            raise ValueError("sun_positions must be two non-empty arrays of equal length")
+        if np.any(zenith >= 90.0):
+            raise ValueError("sun_positions must only contain Sun-above-horizon positions")
+        idx = rng.integers(0, zenith.size, n)
+        return zenith[idx], azimuth[idx]
+    if solar_zenith_deg is None or solar_azimuth_deg is None:
+        raise ValueError("give solar_zenith_deg and solar_azimuth_deg, or sun_positions")
+    return draw_uniform(rng, solar_zenith_deg, n), draw_uniform(rng, solar_azimuth_deg, n)
+
+
 def _rejection_sample(
     rng: np.random.Generator,
     n: int,
@@ -276,19 +308,22 @@ def sample_geometry_uniform(
     slope_deg: AngleSpec = (0.0, 35.0),
     aspect_deg: AngleSpec = (0.0, 360.0),
     min_cos_i: float = 0.0,
+    sun_positions: SunPositions | None = None,
 ) -> TerrainGeometry:
     """Draw geometries with each angle fixed or uniform in a range.
 
     A placeholder when no DEM of the target region is available: uniform slopes do not
     reproduce a real terrain's slope distribution — prefer `sample_geometry_from_dem`.
     Draws with cos i ≤ `min_cos_i` (self-shadowed terrain) are rejected and redrawn.
-    The default ranges are illustrative, not tied to any specific scene.
+    The default ranges are illustrative, not tied to any specific scene. `sun_positions`
+    replaces the two solar ranges with real (zenith, azimuth) pairs.
     """
 
     def propose(m: int) -> TerrainGeometry:
+        sz, saz = draw_sun(rng, m, solar_zenith_deg, solar_azimuth_deg, sun_positions)
         return TerrainGeometry(
-            draw_uniform(rng, solar_zenith_deg, m),
-            draw_uniform(rng, solar_azimuth_deg, m),
+            sz,
+            saz,
             draw_uniform(rng, slope_deg, m),
             draw_uniform(rng, aspect_deg, m),
         )
@@ -301,31 +336,39 @@ def sample_geometry_from_dem(
     n: int,
     slope_deg: np.ndarray,
     aspect_deg: np.ndarray,
-    solar_zenith_deg: AngleSpec,
-    solar_azimuth_deg: AngleSpec,
+    solar_zenith_deg: AngleSpec | None = None,
+    solar_azimuth_deg: AngleSpec | None = None,
     min_cos_i: float = 0.0,
     horizons: TerrainHorizons | None = None,
+    sun_positions: SunPositions | None = None,
+    valid_mask: np.ndarray | None = None,
 ) -> TerrainGeometry:
     """Draw geometries from random pixels of a real terrain (see `slope_aspect_from_dem`).
 
-    Solar angles come from the target scenes' metadata — fixed for one acquisition, or a
-    (low, high) range covering several. NaN pixels (no-data) are never drawn. With
-    `horizons` (same raster as slope/aspect), each draw also gets the pixel's sky-view
-    factor and its cast-shadow state under the drawn Sun position.
+    Solar angles: real (zenith, azimuth) pairs in `sun_positions` (see
+    `spectralforge.region.sun_for_aoi`), or each angle fixed / uniform in a range. NaN
+    pixels (no-data) are never drawn; `valid_mask` (True = drawable, e.g. the AOI inside a
+    buffered DEM) restricts the draw further. With `horizons` (same raster as
+    slope/aspect), each draw also gets the pixel's sky-view factor and its cast-shadow
+    state under the drawn Sun position.
     """
     slope = np.asarray(slope_deg, dtype=float).ravel()
     aspect = np.asarray(aspect_deg, dtype=float).ravel()
-    valid = np.flatnonzero(np.isfinite(slope) & np.isfinite(aspect))
+    drawable = np.isfinite(slope) & np.isfinite(aspect)
+    if valid_mask is not None:
+        if np.size(valid_mask) != slope.size:
+            raise ValueError("valid_mask must have the same shape as slope/aspect")
+        drawable &= np.asarray(valid_mask, dtype=bool).ravel()
+    valid = np.flatnonzero(drawable)
     if valid.size == 0:
-        raise ValueError("DEM contains no valid (finite) pixels")
+        raise ValueError("no valid pixels to draw from (all NaN or outside valid_mask)")
     if horizons is not None and horizons.slope_deg.size != slope.size:
         raise ValueError("horizons must be computed on the same raster as slope/aspect")
     sky_view = None if horizons is None else horizons.sky_view().ravel()
 
     def propose(m: int) -> TerrainGeometry:
         idx = rng.choice(valid, m)
-        sz = draw_uniform(rng, solar_zenith_deg, m)
-        saz = draw_uniform(rng, solar_azimuth_deg, m)
+        sz, saz = draw_sun(rng, m, solar_zenith_deg, solar_azimuth_deg, sun_positions)
         return TerrainGeometry(
             sz,
             saz,

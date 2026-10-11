@@ -77,3 +77,11 @@ db-export-snapshot:
 # Restore db/snapshot/spectralhub.dump into the local dev DB configured in .env via pg_restore — run `just db-up` first (fully offline, needs pg_restore installed)
 db-import-snapshot:
     ./scripts/import_db_snapshot.sh
+
+# B0: download Copernicus DEM GLO-30 for an AOI (e.g. `just b0-dem examples/AOI_el_abra.geojson`)
+b0-dem AOI *ARGS:
+    uv run python scripts/download_dem.py {{AOI}} {{ARGS}}
+
+# B0: solar parameters for an AOI and times (e.g. `just b0-sun examples/AOI_el_abra.geojson --time 2026-06-21T14:30Z`)
+b0-sun AOI *ARGS:
+    uv run python scripts/sun_parameters.py {{AOI}} {{ARGS}}
