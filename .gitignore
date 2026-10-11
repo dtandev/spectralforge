@@ -272,7 +272,6 @@ F>>
 
 # Private dirs
 #############
-tests
 UDEMY
 data
 dbs
@@ -280,3 +279,7 @@ dbs
 # Secrets
 *secrets.json
 
+
+# Documentation figures are part of the docs (override the image ignores above)
+!docs/figures/
+!docs/figures/*.png

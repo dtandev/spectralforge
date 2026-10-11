@@ -14,15 +14,22 @@ dependencies = [
     # src/main.py has no real logic. Confirm which are still needed.
     "geopandas>=0.14.3",
     "numpy>=1.26.4",
-    "psycopg2-binary>=2.9.10",
     "matplotlib>=3.8.4",
     "rasterio>=1.3.9",
     "beautifulsoup4>=4.12.3",
     "shapely>=2.0.4",
     "json5>=0.9.25",
     "scipy>=1.13.0",
-    "spectralhub",
     "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# Database access through spectralhub (src/db.py, scripts/inspect_live_db_schema.py).
+# spectralhub lives in a PRIVATE repo, so it is kept out of the default install:
+# CI and contributors without access can still `uv sync`. With access: `uv sync --extra db`.
+db = [
+    "spectralhub",
+    "psycopg2-binary>=2.9.10",
     # TODO: verify this — geopy is imported by spectralhub/database.py and utils.py
     # (Nominatim geocoding) but is NOT declared in spectralhub's own setup.py
     # install_requires. Declared here as a workaround; consider reporting/fixing upstream
@@ -48,6 +55,9 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Lets every ruff version (incl. the older one pinned in pre-commit) see `spectralforge`
+# as first-party, so import sorting is the same everywhere.
+src = ["src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]
@@ -140,11 +150,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src/spectralforge"]
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 addopts = "--ignore data --ignore notebooks --ignore build_tools --ignore examples --ignore docs"
-asyncio_mode = "auto"
 markers = [
     "unit: mark a test as a unit test.",
     "integration: mark test as an integration test.",

@@ -9,5 +9,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 - CHANGELOG.md
-- Pre-commit config files. 
-
+- Pre-commit config files.
