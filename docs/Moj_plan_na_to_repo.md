@@ -1,0 +1,3 @@
+SpectralForge ma być kuźnią sygnatur spekttralnych. Ma budowac zbiory sygnatur, poprzez miksowanie, zaszumianie, skalowanie, resamplowanie sygnatur z baz danych USGS i Ecostress. 
+Celem jest zbudowanie zestawu sygnatur per mineral, ktore beda mogly byc wykorzystane w róznych operacjach i metyoddach uczenia maszynowego, m. in. w sieciach syjamskich. Chcialbym byc moze odniesc sie jakos do tego artyykulu ktory jest w docs/ 
+byc moze zaproponowac rozszerzenie tych testow ktore tam zostaly przeprowadzone. 
