@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "name": "AOI_el_abra",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "El Abra, Antofagasta, Chile",
+        "note": "Bounding box of data/areas/synthetic_minerals.geojson (example AOI for B0)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-68.975, -22.025],
+            [-68.765, -22.025],
+            [-68.765, -21.860],
+            [-68.975, -21.860],
+            [-68.975, -22.025]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -142,6 +142,11 @@ guardraila B8, nie do B1. Na Rys. 7 jest to ok. 30% widm alunitu, który jest ja
 | `sample_geometry_uniform(rng, n, solar_zenith_deg, solar_azimuth_deg, slope_deg, aspect_deg, min_cos_i=0.0)` | brak DEM regionu; testy | każdy kąt stały albo z U(low, high); V_d i S nieznane (wartości domyślne) |
 | `sample_geometry_from_dem(rng, n, slope_deg, aspect_deg, solar_zenith_deg, solar_azimuth_deg, min_cos_i=0.0, horizons=None)` | **zalecany**: realny rozkład nachyleń i ekspozycji regionu | losowe piksele DEM; kąty Słońca z metadanych scen; z `horizons` także V_d i S |
 
+Dla konkretnego obszaru najprościej użyć `spectralforge.region.region_sampler` z
+[B0](B0_region.md): pobiera on DEM regionu (Copernicus GLO-30), losuje piksele tylko z AOI
+i bierze realne pary (zenit, azymut) Słońca dla zadanych dat i godzin. Oba samplery
+przyjmują też takie pary bezpośrednio przez `sun_positions=(zenith, azimuth)`.
+
 `min_cos_i` odrzuca próbki z cos i ≤ `min_cos_i`. Domyślne 0 usuwa samozacienienie, co ma sens
 dla modeli cosinusowego i Minnaerta (inaczej powstają widma zerowe). Dla C-correction i modelu
 fizycznego podaj `min_cos_i=-1.0`, bo stoki samozacienione są tam oświetlone przez niebo i teren.
