@@ -12,7 +12,7 @@ services:
     image: postgis/postgis:16-3.4
     environment:
       POSTGRES_USER: spectralforge
-      POSTGRES_PASSWORD: spectralforge_dev_only
+      POSTGRES_PASSWORD: spectralforge_dev_only # pragma: allowlist secret  (local-only placeholder)
       POSTGRES_DB: spectralforge_dev
     ports:
       - "5433:5432" # non-default host port, avoids clashing with any local Postgres install

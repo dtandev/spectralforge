@@ -59,7 +59,9 @@ def inspect(db: SpectralDatabase) -> dict:
                     f'SELECT name, class, COUNT(*) FROM "{table}" '  # noqa: S608 - table name from information_schema, not user input
                     "GROUP BY name, class ORDER BY COUNT(*) DESC LIMIT 50"
                 )
-                entry["top_name_class_counts"] = [{"name": r[0], "class": r[1], "count": r[2]} for r in db.cursor.fetchall()]
+                entry["top_name_class_counts"] = [
+                    {"name": r[0], "class": r[1], "count": r[2]} for r in db.cursor.fetchall()
+                ]
             except Exception as e:  # noqa: BLE001
                 db.connection.rollback()
                 entry["top_name_class_counts_error"] = str(e)
@@ -95,7 +97,9 @@ def main() -> None:
     required = ["DB_USER", "DB_PASSWORD", "DB_HOST", "DB_NAME"]
     missing = [key for key in required if not os.environ.get(key)]
     if missing:
-        print(f"Missing required environment variables: {', '.join(missing)}. Copy .env-example to .env and fill them in.")
+        print(
+            f"Missing required environment variables: {', '.join(missing)}. Copy .env-example to .env and fill them in."
+        )
         sys.exit(1)
 
     output_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH

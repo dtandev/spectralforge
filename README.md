@@ -17,7 +17,13 @@ just setup
 
 This installs dependencies via `uv sync`, sets up pre-commit hooks, and copies `.env-example` to `.env`.
 
-<!-- TODO: verify this — pyproject.toml in this repo currently has no [project] table or dependency list; dependencies are still declared in the legacy setup.py. See SCAFFOLD_TODO.md for the required migration before `just setup` / `uv sync` will actually install anything. -->
+Database access (`src/db.py`, `just db-apply-schema`, `just db-inspect`) needs the
+[`spectralhub`](https://github.com/FourPointSPZOO/spectralhub) library, which lives in a
+private repository. It is an optional extra, so the default install works without access:
+
+```bash
+uv sync --extra db   # only with access to FourPointSPZOO/spectralhub
+```
 
 ## Usage
 

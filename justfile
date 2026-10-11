@@ -64,11 +64,11 @@ db-down:
 
 # Apply SpectralForge's own `spectralforge` schema to the DB configured in .env (safe against the real Azure DB too — see src/db.py)
 db-apply-schema:
-    uv run python src/db.py
+    uv run --extra db python src/db.py
 
 # Snapshot the live SpectralHub DB schema/row counts to db/schema_snapshot.json (read-only; needs VPN/office network, see scripts/inspect_live_db_schema.py)
 db-inspect:
-    uv run python scripts/inspect_live_db_schema.py
+    uv run --extra db python scripts/inspect_live_db_schema.py
 
 # Export a full local copy of the live DB to db/snapshot/spectralhub.dump via pg_dump (read-only; needs VPN/office network + pg_dump installed)
 db-export-snapshot:
