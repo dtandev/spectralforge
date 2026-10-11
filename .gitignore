@@ -243,6 +243,7 @@ mtmf_research/
 results_mtmf/
 **/Notebooks/
 to_remove/
+data/
 =======
 F>>
 */bare_soil_param_selection
@@ -256,3 +257,4 @@ dbs
 
 # Secrets
 *secrets.json
+
