@@ -1,0 +1,56 @@
+# ============================================================
+# product.yaml — S&I Product Card
+# ============================================================
+# This file is the single source of truth for this product.
+# This file should always be kept up to date.
+#
+# Run `just check` to validate this file.
+# ============================================================
+
+# --- Identity ---
+name: "SpectralForge"
+description: "Python library for processing and analyzing spectral data"  # TODO: verify this — inferred from precommit_config.md, which describes a project called "SpectralHub"; confirm SpectralForge is the correct/current name and this description still applies
+version: "0.0.1"                                     # Semantic versioning: MAJOR.MINOR.PATCH — kept in sync with CHANGELOG.md
+author: "Dariusz Tanajewski"
+category: "spectral-analysis"                        # TODO: verify this — inferred from "spectral data" wording, no product.yaml existed before to confirm
+
+# --- Status ---
+status: "draft"
+created: "2025-02-15"       # inferred from first git commit date
+last_updated: "2025-02-15"   # TODO: verify this — update on every release; currently same as created since no later commits exist
+
+# --- Inputs ---
+inputs:
+  - name: "TODO: input name"
+    type: "TODO: file type"                          # e.g. GeoTIFF | CSV | Shapefile | JSON
+    description: "TODO: what this input represents"
+    format: "TODO: technical format details"         # e.g. Float32, EPSG:4326, min resolution 10m
+    required: true
+  # TODO: add more inputs as needed — no source code exists yet to infer this from
+
+# --- Outputs ---
+outputs:
+  - name: "TODO: output name"
+    type: "TODO: file type"
+    description: "TODO: what this output represents and how to interpret it"
+    format: "TODO: technical format details"
+  # TODO: add more outputs as needed — no source code exists yet to infer this from
+
+# --- Parameters ---
+parameters:
+  # TODO: list key configurable parameters
+
+# --- Dependencies ---
+# TODO: List any non-Python dependencies or data licenses
+external_dependencies: []
+# example:
+# external_dependencies:
+#   - name: "Sentinel-2 L2A"
+#     license: "Copernicus Data Space - Open Access"
+#     notes: "Requires cloud cover < 20%"
+
+# --- Known limitations ---
+# TODO: Fill this in — it's the most valuable part of the card.
+# What are edge cases? When does the method fail? What are sanity check values?
+limitations:
+  - "TODO: describe known limitation or edge case"

@@ -1,0 +1,30 @@
+# Local development database for SpectralForge.
+# Mirrors the production stack (PostgreSQL + PostGIS) without touching the real Azure DB.
+#
+# Usage:
+#   just db-up      # starts the container, auto-applies schema/*.sql on first run
+#   just db-down    # stops it (data persists in the named volume)
+#
+# TODO: verify this — POSTGRES_PASSWORD below is a local-only placeholder, never reuse it
+# anywhere real. Override via a .env file next to this compose file if desired.
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: spectralforge
+      POSTGRES_PASSWORD: spectralforge_dev_only
+      POSTGRES_DB: spectralforge_dev
+    ports:
+      - "5433:5432" # non-default host port, avoids clashing with any local Postgres install
+    volumes:
+      - spectralforge_pgdata:/var/lib/postgresql/data
+      # Files here run once, in filename order, only on first container init (empty volume).
+      - ./schema:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spectralforge -d spectralforge_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  spectralforge_pgdata:
